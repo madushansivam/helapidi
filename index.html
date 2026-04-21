@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hēlapidi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="1000" height="600"></canvas>
+    <canvas id="minimap" width="200" height="120"></canvas>
+    <div id="scanlines"></div>
+
+    <!-- Coin HUD -->
+    <div id="coinHUD">🪙 <span id="coinCount">0</span> / <span id="coinTotal">0</span></div>
+
+    <!-- Fall-damage health bar -->
+    <div id="healthBarWrap">
+      <div id="healthBarTrack">
+        <div id="healthBarInner"></div>
+      </div>
+      <div id="fallDmgLabel">FALL DAMAGE</div>
+    </div>
+
+    <!-- Weapon ammo HUD (mag / reserve) -->
+    <div id="weaponAmmoHUD">
+      <span class="ammo-mag" id="wAmmoMag">10</span>
+      <span class="ammo-sep">/</span>
+      <span class="ammo-res" id="wAmmoRes">40</span>
+    </div>
+
+    <!-- Player HUD -->
+    <div id="gameUI">
+      <div class="playerStats" id="player1Stats">
+        <h3>Player 1</h3>
+        <div class="stat-row"><span class="stat-label">HP</span>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar health-bar" id="hpBar1"></div>
+          </div>
+          <span class="stat-value" id="health1">100</span>
+        </div>
+        <div class="stat-row"><span class="stat-label">AMO</span>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar ammo-bar" id="ammoBar1"></div>
+          </div>
+          <span class="stat-value" id="ammo1">10</span>
+        </div>
+        <div class="stat-row"><span class="stat-label">JET</span>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar jetpack-bar" id="jetpackBar1"></div>
+          </div>
+          <span class="stat-value" id="jetpack1">100</span>
+        </div>
+        <div class="reload-wrap" id="reloadWrap1">
+          <div class="reload-label">RELOADING</div>
+          <div class="reload-track">
+            <div class="reload-fill" id="reloadBar1"></div>
+          </div>
+        </div>
+        <div class="wins-badge">🏆 <span id="wins1">0</span> wins</div>
+      </div>
+
+      <div id="centreHUD">
+        <div id="gameTitle">HĒLAPIDI</div>
+        <div id="debugInfo"><span id="fpsDisplay"></span>&nbsp;<span id="pingDisplay"></span></div>
+      </div>
+
+      <div class="playerStats" id="player2Stats">
+        <h3>Player 2</h3>
+        <div class="stat-row"><span class="stat-label">HP</span>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar health-bar" id="hpBar2"></div>
+          </div>
+          <span class="stat-value" id="health2">100</span>
+        </div>
+        <div class="stat-row"><span class="stat-label">AMO</span>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar ammo-bar" id="ammoBar2"></div>
+          </div>
+          <span class="stat-value" id="ammo2">10</span>
+        </div>
+        <div class="stat-row"><span class="stat-label">JET</span>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar jetpack-bar" id="jetpackBar2"></div>
+          </div>
+          <span class="stat-value" id="jetpack2">100</span>
+        </div>
+        <div class="reload-wrap" id="reloadWrap2">
+          <div class="reload-label">RELOADING</div>
+          <div class="reload-track">
+            <div class="reload-fill" id="reloadBar2"></div>
+          </div>
+        </div>
+        <div class="wins-badge">🏆 <span id="wins2">0</span> wins</div>
+      </div>
+    </div>
+
+    <!-- Camera controls -->
+    <div id="cameraControls">
+      <strong>📷 Camera</strong>
+      <button onclick="setCameraMode('static')">Static</button>
+      <button onclick="setCameraMode('follow1')">Follow P1</button>
+      <button onclick="setCameraMode('follow2')">Follow P2</button>
+      <button onclick="setCameraMode('dynamic')">Dynamic</button>
+      <button onclick="setCameraMode('split')">Split</button>
+    </div>
+
+    <div id="gameOver">
+      <h2>ROUND OVER</h2>
+      <div class="winner-text"><span id="winner"></span> wins!</div>
+      <div class="score-display">
+        <span class="score-p1" id="score1">0</span>
+        <span class="score-sep">–</span>
+        <span class="score-p2" id="score2">0</span>
+      </div>
+      <button onclick="resetGame()">NEXT ROUND</button>
+    </div>
+
+    <div id="voiceIndicator">🎙 VOICE ACTIVE</div>
+
+    <div id="controls">
+      <div class="ctrl-cols">
+        <div><span class="p1c">P1:</span> A/D move · W jump · Space jetpack · F shoot · R reload · 1-5 weapon · G throw
+          · M mine</div>
+        <div><span class="p2c">P2:</span> ←/→ move · ↑ jump · Shift jetpack · L shoot · P reload</div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="js/EventEmitter.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/weapons.js"></script>
+  <script src="js/ammoCrate.js"></script>
+  <script src="js/grenades.js"></script>
+  <script src="js/landmines.js"></script>
+  <script src="js/hud.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/network.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/gameLoop.js"></script>
+  <script src="js/boot.js"></script>
+</body>
+
+</html>
