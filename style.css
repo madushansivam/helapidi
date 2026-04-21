@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+:root {
+  --p1:#4CAF50; --p2:#FF6347; --bg:#0a0a12;
+  --panel:rgba(8,12,24,0.85); --border:rgba(255,255,255,0.12);
+  --accent:#00e5ff; --warn:#ff6b35; --gold:#FFD700;
+}
+
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg);
+  font-family:'Share Tech Mono','Courier New',monospace; }
+
+/* ── Game Container ─────────────────────────────────────── */
+#gameContainer { position:absolute; top:0; left:0; transform-origin:top left; }
+#gameCanvas    { display:block; background:linear-gradient(180deg,#5BA3C9 0%,#87CEEB 40%,#A8D8EA 100%); }
+#minimap       { position:absolute; bottom:10px; right:10px; border:1px solid var(--border);
+                 border-radius:4px; box-shadow:0 0 12px rgba(0,229,255,0.15); background:rgba(0,0,0,0.7); }
+
+/* ── HUD ───────────────────────────────────────────────── */
+#gameUI { position:absolute; top:0; left:0; right:0; display:flex;
+          justify-content:space-between; padding:10px 12px; pointer-events:none; }
+
+.playerStats { background:var(--panel); border:1px solid var(--border); border-radius:8px;
+               padding:10px 14px; min-width:160px; backdrop-filter:blur(6px); }
+.playerStats h3 { font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700;
+                  letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+#player1Stats h3 { color:var(--p1); text-shadow:0 0 8px var(--p1); }
+#player2Stats h3 { color:var(--p2); text-shadow:0 0 8px var(--p2); }
+#player2Stats  { text-align:right; }
+
+.stat-row   { display:flex; align-items:center; gap:6px; margin-bottom:4px;
+              font-size:11px; color:rgba(255,255,255,0.7); }
+#player2Stats .stat-row { flex-direction:row-reverse; }
+.stat-label { color:rgba(255,255,255,0.4); font-size:9px; letter-spacing:1px; }
+.stat-bar-wrap { width:70px; height:5px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden; }
+.stat-bar   { height:100%; border-radius:3px; transition:width 0.15s ease-out; }
+.health-bar { background:linear-gradient(90deg,#f44336,#4CAF50); width:100%; }
+.ammo-bar   { background:var(--accent); width:100%; }
+.jetpack-bar{ background:linear-gradient(90deg,#FF6B35,#FFD700); width:100%; }
+.stat-value { font-size:13px; font-weight:bold; color:#fff; min-width:28px; }
+
+.wins-badge { display:inline-block; padding:1px 6px; border-radius:10px;
+              font-size:10px; font-weight:bold; margin-top:4px; }
+#player1Stats .wins-badge { background:rgba(76,175,80,0.2); color:var(--p1); border:1px solid var(--p1); }
+#player2Stats .wins-badge { background:rgba(255,99,71,0.2);  color:var(--p2); border:1px solid var(--p2); }
+
+/* Fuel bar critical pulse */
+.jetpack-bar.critical {
+  animation: fuelPulse 0.5s ease-in-out infinite alternate;
+}
+@keyframes fuelPulse {
+  from { background:linear-gradient(90deg,#ff2200,#ff6600); }
+  to   { background:linear-gradient(90deg,#ff6600,#ff2200); box-shadow:0 0 8px #ff4400; }
+}
+
+/* Reload bar */
+.reload-wrap  { margin-top:4px; display:none; }
+.reload-track { width:100%; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
+.reload-fill  { height:100%; background:var(--gold); width:0%; transition:width 0.05s linear; border-radius:2px; }
+.reload-label { font-size:8px; color:var(--gold); letter-spacing:1px; margin-bottom:1px; }
+
+/* Low health pulse */
+.low-health { animation:lowHealthPulse 0.6s ease-in-out infinite alternate; }
+@keyframes lowHealthPulse {
+  from { box-shadow:0 0 0 rgba(244,67,54,0); }
+  to   { box-shadow:0 0 16px rgba(244,67,54,0.6); border-color:rgba(244,67,54,0.6); }
+}
+
+/* ── Centre HUD ─────────────────────────────────────────── */
+#centreHUD { position:absolute; top:10px; left:50%; transform:translateX(-50%); text-align:center; pointer-events:none; }
+#gameTitle  { font-family:'Orbitron',sans-serif; font-size:13px; font-weight:900;
+              letter-spacing:4px; color:rgba(255,255,255,0.35); }
+#debugInfo  { font-size:9px; color:rgba(255,255,255,0.3); margin-top:2px; }
+
+/* ── MODULE_3: Coin HUD ─────────────────────────────────── */
+#coinHUD {
+  position:absolute; top:148px; right:14px; background:var(--panel);
+  border:1px solid rgba(255,215,0,0.35); border-radius:8px; padding:6px 14px;
+  color:var(--gold); font-family:'Orbitron',sans-serif; font-size:12px;
+  font-weight:700; letter-spacing:1px; pointer-events:none; z-index:20;
+  text-shadow:0 0 10px rgba(255,215,0,0.5); backdrop-filter:blur(4px);
+  box-shadow:0 0 14px rgba(255,215,0,0.12); transition:transform 0.1s;
+}
+#coinHUD.flash {
+  animation:coinHudFlash 0.35s ease-out;
+}
+@keyframes coinHudFlash {
+  0%   { transform:scale(1.0); color:var(--gold); }
+  30%  { transform:scale(1.25); color:#fff; text-shadow:0 0 20px #FFD700, 0 0 40px #FFD700; }
+  100% { transform:scale(1.0); color:var(--gold); }
+}
+
+/* ── MODULE_4: Fall-damage health bar ───────────────────── */
+#healthBarWrap  { position:absolute; top:52px; left:50%; transform:translateX(-50%);
+                  width:200px; pointer-events:none; z-index:20; display:none; }
+#healthBarInner { height:14px; border-radius:7px;
+                  background:linear-gradient(90deg,#33cc33,#66ff66);
+                  transition:width 0.3s,background 0.3s; width:100%; }
+#healthBarTrack { width:100%; height:14px; background:rgba(0,0,0,0.5);
+                  border-radius:7px; border:1px solid rgba(255,255,255,0.15); overflow:hidden; }
+#fallDmgLabel   { text-align:center; font-size:9px; color:rgba(255,80,80,0.9);
+                  letter-spacing:2px; margin-top:3px; display:none; }
+
+/* ── WEAPON HUD ─────────────────────────────────────────── */
+/* Weapon slots are drawn on canvas — no HTML needed for slots */
+/* Ammo reserve display below the slots */
+#weaponAmmoHUD {
+  position:absolute; bottom:78px; left:50%; transform:translateX(-50%);
+  font-family:'Orbitron',sans-serif; font-size:10px; color:rgba(255,255,255,0.6);
+  text-align:center; pointer-events:none; letter-spacing:2px;
+}
+#weaponAmmoHUD .ammo-mag   { color:#00e5ff; font-size:14px; font-weight:700; }
+#weaponAmmoHUD .ammo-sep   { color:rgba(255,255,255,0.3); margin:0 4px; }
+#weaponAmmoHUD .ammo-res   { color:rgba(255,255,255,0.5); font-size:11px; }
+
+/* ── Camera controls ────────────────────────────────────── */
+#cameraControls { position:absolute; bottom:140px; right:10px; background:var(--panel);
+                  border:1px solid var(--border); border-radius:8px; padding:8px 10px; pointer-events:auto; }
+#cameraControls strong { display:block; font-size:8px; letter-spacing:2px; color:var(--accent);
+                         margin-bottom:6px; text-transform:uppercase; }
+#cameraControls button { display:block; width:100%; background:rgba(255,255,255,0.06);
+                         border:1px solid var(--border); border-radius:4px; color:rgba(255,255,255,0.7);
+                         font-family:'Share Tech Mono',monospace; font-size:10px;
+                         padding:4px 8px; margin-bottom:3px; cursor:pointer; text-align:left; transition:background 0.15s; }
+#cameraControls button:hover { background:rgba(0,229,255,0.12); color:var(--accent); border-color:var(--accent); }
+
+/* ── Controls legend ────────────────────────────────────── */
+#controls { position:absolute; bottom:-110px; left:50%; transform:translateX(-50%);
+            background:var(--panel); border:1px solid var(--border); border-radius:8px;
+            padding:10px 18px; color:rgba(255,255,255,0.5); font-size:10px;
+            pointer-events:none; white-space:nowrap; }
+#controls .ctrl-cols { display:flex; gap:40px; }
+#controls .p1c { color:var(--p1); font-weight:bold; }
+#controls .p2c { color:var(--p2); font-weight:bold; }
+
+/* ── Game Over overlay ──────────────────────────────────── */
+#gameOver { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            background:linear-gradient(135deg,rgba(8,12,24,0.97),rgba(20,28,50,0.97));
+            border:1px solid var(--border); border-radius:16px; padding:36px 48px;
+            text-align:center; display:none; min-width:280px;
+            box-shadow:0 0 60px rgba(0,0,0,0.8),0 0 30px rgba(0,229,255,0.08); backdrop-filter:blur(12px); }
+#gameOver h2 { font-family:'Orbitron',sans-serif; font-size:22px; font-weight:900;
+               letter-spacing:3px; color:var(--gold); text-shadow:0 0 20px rgba(255,215,0,0.5); margin-bottom:8px; }
+#gameOver .winner-text  { font-size:16px; color:rgba(255,255,255,0.85); margin-bottom:4px; }
+#gameOver .score-display{ font-family:'Orbitron',sans-serif; font-size:28px; font-weight:700; margin:12px 0; }
+.score-p1 { color:var(--p1); } .score-sep { color:rgba(255,255,255,0.3); margin:0 8px; } .score-p2 { color:var(--p2); }
+#gameOver button { margin-top:16px; background:linear-gradient(135deg,#1a6b35,#2e9e52);
+                   color:white; border:1px solid rgba(76,175,80,0.4); border-radius:8px;
+                   padding:10px 28px; font-family:'Orbitron',sans-serif; font-size:12px;
+                   font-weight:700; letter-spacing:2px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
+#gameOver button:hover { background:linear-gradient(135deg,#2e9e52,#4CAF50);
+                         box-shadow:0 0 20px rgba(76,175,80,0.4); transform:translateY(-1px); }
+
+/* Voice indicator */
+#voiceIndicator { position:absolute; top:80px; left:50%; transform:translateX(-50%);
+                  background:rgba(0,0,0,0.7); border:1px solid var(--accent); border-radius:20px;
+                  padding:4px 12px; font-size:10px; color:var(--accent); display:none;
+                  pointer-events:none; animation:voicePulse 1s ease-in-out infinite; }
+@keyframes voicePulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+/* Scanlines */
+#scanlines { position:absolute; top:0; left:0; width:1000px; height:600px;
+             background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+             pointer-events:none; mix-blend-mode:multiply; }
+
+.touch-overlay { display:none; }
